@@ -1,18 +1,43 @@
 import { useState } from "react";
-import { Container, Text, VStack, Box, Heading, Button, Image, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, Textarea, List, ListItem } from "@chakra-ui/react";
-import { FaPlay, FaPlus } from "react-icons/fa";
+import { Container, Text, VStack, Box, Heading, Button, Image, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, Textarea, List, ListItem, IconButton } from "@chakra-ui/react";
+import { FaPlay, FaPause, FaForward, FaPlus } from "react-icons/fa";
 
 const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [playlists, setPlaylists] = useState([]);
   const [playlistName, setPlaylistName] = useState("");
   const [playlistDescription, setPlaylistDescription] = useState("");
+  const [currentSong, setCurrentSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const songs = [
+    { title: "Song 1", artist: "Artist 1", url: "/songs/song1.mp3" },
+    { title: "Song 2", artist: "Artist 2", url: "/songs/song2.mp3" },
+    { title: "Song 3", artist: "Artist 3", url: "/songs/song3.mp3" },
+  ];
 
   const handleCreatePlaylist = () => {
     setPlaylists([...playlists, { name: playlistName, description: playlistDescription }]);
     setPlaylistName("");
     setPlaylistDescription("");
     setIsModalOpen(false);
+  };
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      document.getElementById("audio-player").pause();
+    } else {
+      document.getElementById("audio-player").play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleSkip = () => {
+    const currentIndex = songs.findIndex(song => song.url === currentSong);
+    const nextIndex = (currentIndex + 1) % songs.length;
+    setCurrentSong(songs[nextIndex].url);
+    setIsPlaying(true);
+    document.getElementById("audio-player").play();
   };
 
   return (
@@ -67,6 +92,24 @@ const Index = () => {
             ))}
           </List>
         </Box>
+        <Box w="100%">
+          <Heading as="h2" size="lg" mb={4}>Songs</Heading>
+          <List spacing={3}>
+            {songs.map((song, index) => (
+              <ListItem key={index} p={3} shadow="md" borderWidth="1px" borderRadius="md" onClick={() => { setCurrentSong(song.url); setIsPlaying(true); document.getElementById("audio-player").play(); }}>
+                <Heading as="h3" size="md">{song.title}</Heading>
+                <Text mt={2}>{song.artist}</Text>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+        {currentSong && (
+          <Box w="100%" mt={4} p={4} shadow="md" borderWidth="1px" borderRadius="md" textAlign="center">
+            <audio id="audio-player" src={currentSong} onEnded={handleSkip}></audio>
+            <IconButton icon={isPlaying ? <FaPause /> : <FaPlay />} onClick={handlePlayPause} mr={4} />
+            <IconButton icon={<FaForward />} onClick={handleSkip} />
+          </Box>
+        )}
       </VStack>
     </Container>
   );
